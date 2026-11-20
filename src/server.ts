@@ -103,3 +103,19 @@ process.on('SIGINT', () => {
 process.on('SIGTERM', () => {
   void shutdown('SIGTERM');
 });
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+});
+
+process.on('uncaughtExceptionMonitor', (error) => {
+  console.error('Uncaught exception (monitor):', error);
+});
+
+process.on('unhandledRejectionMonitor', (reason) => {
+  console.error('Unhandled rejection (monitor):', reason);
+});
