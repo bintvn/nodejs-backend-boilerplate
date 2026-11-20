@@ -1,8 +1,10 @@
 import type {
   DeepPartial,
   FindManyOptions,
+  FindOptionsRelations,
   FindOptionsWhere,
   ObjectLiteral,
+  QueryDeepPartialEntity,
   Repository,
 } from 'typeorm';
 import { NotFoundError } from './errors.js';
@@ -11,28 +13,26 @@ export interface IBaseEntity extends ObjectLiteral {
   id: string;
 }
 
-export type BaseServiceMap = Record<string, BaseService<IBaseEntity>>;
-
 export abstract class BaseService<
   TEntity extends IBaseEntity,
   TRepository extends Repository<TEntity> = Repository<TEntity>,
-  TServices extends BaseServiceMap = BaseServiceMap,
 > {
   abstract readonly name: string;
 
   constructor(
     protected readonly repository: TRepository,
-    protected readonly services?: TServices,
+    private readonly relations?: FindOptionsRelations<TEntity>,
   ) {}
 
   getAll(options?: FindManyOptions<TEntity>) {
-    return this.repository.find(options);
+    return this.repository.find({ relations: this.relations, ...options });
   }
 
   async get(id: TEntity['id']): Promise<TEntity> {
-    const data = await this.repository.findOneBy({
-      id,
-    } as FindOptionsWhere<TEntity>);
+    const data = await this.repository.findOne({
+      where: { id } as FindOptionsWhere<TEntity>,
+      relations: this.relations,
+    });
 
     if (!data) {
       throw new NotFoundError(`${this.name} with ID ${id} not found`);
@@ -41,22 +41,25 @@ export abstract class BaseService<
     return data;
   }
 
-  create(data: DeepPartial<TEntity>) {
+  async create(data: DeepPartial<TEntity>) {
     const entity = this.repository.create(data);
 
-    return this.repository.save(entity);
+    const saved = await this.repository.save(entity);
+    return this.relations ? this.get(saved.id) : saved;
   }
 
-  async update(id: TEntity['id'], newData: DeepPartial<TEntity>) {
-    const oldData = await this.get(id);
-    const merged = this.repository.merge(oldData, newData);
-
-    return await this.repository.save(merged);
+  async update(id: TEntity['id'], newData: QueryDeepPartialEntity<TEntity>) {
+    if (Object.keys(newData).length > 0) {
+      await this.repository.update(id, newData);
+    }
+    return this.get(id);
   }
 
   async delete(id: TEntity['id']) {
-    const data = await this.get(id);
-    await this.repository.delete(data.id);
+    const result = await this.repository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundError(`${this.name} with ID ${id} not found`);
+    }
 
     return true;
   }

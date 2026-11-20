@@ -2,20 +2,17 @@ import { ModuleUserRoleEntity } from '../entities/module-user-role.entity.js';
 import { ModuleEntity } from '../entities/module.entity.js';
 import { dbVirtualOffice } from '../index.js';
 import { UserRoleEntity } from '../entities/user-role.entity.js';
-import { RoleEntity } from '../entities/role.entity.js';
+import { ADMIN_EMAIL } from '../../constants.js';
 
 const moduleUserRolesSeed = async () => {
   const moduleRepository = dbVirtualOffice.getRepository(ModuleEntity);
   const moduleUserRolesRepository =
     dbVirtualOffice.getRepository(ModuleUserRoleEntity);
-  const roleRepository = dbVirtualOffice.getRepository(RoleEntity);
   const userRoleRepository = dbVirtualOffice.getRepository(UserRoleEntity);
 
-  const adminRole = await roleRepository.findOneBy({ slug: 'admin' });
-  if (!adminRole) return;
-
   const adminUserRole = await userRoleRepository.findOneBy({
-    role: { id: adminRole.id },
+    user: { email: ADMIN_EMAIL.trim().toLowerCase() },
+    role: { slug: 'admin' },
   });
   if (!adminUserRole) return;
 

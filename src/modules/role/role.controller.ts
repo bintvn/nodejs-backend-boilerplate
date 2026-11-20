@@ -1,9 +1,10 @@
 import type { Request, Response } from 'express';
+import { parseBody, parsePatchId } from '../../common/validation.js';
 import type { RoleEntity } from '../../db/entities/role.entity.js';
 import type RoleService from './role.service.js';
 import { createRoleSchema, updateRoleSchema } from './role.schema.js';
 
-const dto = (role: RoleEntity) => ({
+export const roleDto = (role: RoleEntity) => ({
   id: role.id,
   createdAt: role.createdAt,
   updatedAt: role.updatedAt,
@@ -19,32 +20,25 @@ export default class RoleController {
   constructor(private readonly service: RoleService) {}
 
   getAll = async (_request: Request, response: Response) => {
-    response.json({ data: (await this.service.getAll()).map(dto) });
+    response.json({ data: (await this.service.getAll()).map(roleDto) });
   };
 
   get = async (request: Request<{ id: string }>, response: Response) => {
-    response.json({ data: dto(await this.service.get(request.params.id)) });
+    response.json({ data: roleDto(await this.service.get(request.params.id)) });
   };
 
   create = async (request: Request, response: Response) => {
-    const parsed = createRoleSchema.safeParse(request.body);
-    if (!parsed.success) {
-      response.status(400).json({ error: { message: 'Bad Request' } });
-      return;
-    }
+    const data = parseBody(createRoleSchema, request.body);
     response
       .status(201)
-      .json({ data: dto(await this.service.create(parsed.data)) });
+      .json({ data: roleDto(await this.service.create(data)) });
   };
 
   update = async (request: Request<{ id: string }>, response: Response) => {
-    const parsed = updateRoleSchema.safeParse(request.body);
-    if (!parsed.success) {
-      response.status(400).json({ error: { message: 'Bad Request' } });
-      return;
-    }
+    const id = parsePatchId(request.params.id);
+    const data = parseBody(updateRoleSchema, request.body);
     response.json({
-      data: dto(await this.service.update(request.params.id, parsed.data)),
+      data: roleDto(await this.service.update(id, data)),
     });
   };
 

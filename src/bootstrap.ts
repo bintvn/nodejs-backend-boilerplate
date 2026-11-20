@@ -8,7 +8,7 @@ import UserRoleController from './modules/user-role/user-role.controller.js';
 import { ModuleEntity } from './db/entities/module.entity.js';
 import ModuleService from './modules/modules/module.service.js';
 import ModuleController from './modules/modules/module.controller.js';
-import ModuleRoleService from './modules/module-user-role/module-user-role.service.js';
+import ModuleUserRoleService from './modules/module-user-role/module-user-role.service.js';
 import { ModuleUserRoleEntity } from './db/entities/module-user-role.entity.js';
 import ModuleUserRoleController from './modules/module-user-role/module-user-role.controller.js';
 import RoleService from './modules/role/role.service.js';
@@ -28,15 +28,11 @@ const userController = new UserController(userService);
 
 const userRoleService = new UserRoleService(
   dbVirtualOffice.getRepository(UserRoleEntity),
-  {
-    userService,
-  },
 );
 const userRoleController = new UserRoleController(userRoleService);
 
-const moduleUserRoleService = new ModuleRoleService(
+const moduleUserRoleService = new ModuleUserRoleService(
   dbVirtualOffice.getRepository(ModuleUserRoleEntity),
-  { userRole: userRoleService, module: moduleService },
 );
 const moduleUserRoleController = new ModuleUserRoleController(
   moduleUserRoleService,

@@ -10,28 +10,44 @@ let isShuttingDown = false;
 async function start() {
   await initDB();
 
-  server = app.listen(PORT, HOST, () => {
-    const result = server?.address();
+  await new Promise<void>((resolve, reject) => {
+    server = app.listen(PORT, HOST, (error?: Error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+
+  if (server) {
+    const result = server.address();
     const address = typeof result === 'object' ? result : null;
 
     console.log(
       `Server running on http://${address?.address || HOST}:${String(address?.port || PORT)} (${String(address?.family)})`,
     );
-  });
+    server.on('close', () => {
+      console.log('HTTP server closed');
+    });
+  }
+}
 
-  server.on('close', () => {
-    console.log('HTTP server closed');
-  });
+async function handleStartupFailure(error: unknown) {
+  console.error('Server startup failed:', error);
+  try {
+    if (dbVirtualOffice.isInitialized) await dbVirtualOffice.destroy();
+  } catch (cleanupError) {
+    console.error(
+      'Error closing database after startup failure:',
+      cleanupError,
+    );
+  }
+  process.exit(1);
 }
 
 start().catch((error: unknown) => {
-  if (error instanceof Error) {
-    console.error('server.ts', error);
-  } else {
-    console.error(error);
-
-    process.exit(1);
-  }
+  void handleStartupFailure(error);
 });
 
 const closeHttpServer = (): Promise<void> => {

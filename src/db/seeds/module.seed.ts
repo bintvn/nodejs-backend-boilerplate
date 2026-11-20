@@ -4,28 +4,12 @@ import { dbVirtualOffice } from '../index.js';
 import { readdir } from 'node:fs/promises';
 import { kebabCaseToTitle } from '../../utils/helper.js';
 
-const moduleDetection = async (relativePath: string) => {
-  const targetUrl = new URL(relativePath, import.meta.url);
-
-  try {
-    const entries = await readdir(targetUrl, { withFileTypes: true });
-    const folders = entries
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name);
-
-    return folders;
-  } catch (error: unknown) {
-    if (error instanceof Error)
-      console.error(
-        `Gagal membaca direktori "${targetUrl.toString()}":`,
-        error.message,
-      );
-    return [];
-  }
-};
-
 const moduleSeed = async () => {
-  const moduleSlugs = await moduleDetection('../../modules');
+  const directory = new URL('../../modules', import.meta.url);
+  const entries = await readdir(directory, { withFileTypes: true });
+  const moduleSlugs = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
   const newModules: DeepPartial<ModuleEntity>[] = moduleSlugs.map((slug) => ({
     name: kebabCaseToTitle(slug),
     slug,

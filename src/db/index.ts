@@ -8,7 +8,6 @@ import {
   DB_USERNAME,
   IS_DEV,
 } from '../constants.js';
-import { DatabaseError } from '../common/errors.js';
 import seeds from './seeds/index.js';
 
 const dbVirtualOffice = new DataSource({
@@ -25,37 +24,16 @@ const dbVirtualOffice = new DataSource({
 });
 
 const initDB = async () => {
-  try {
-    console.log('Connecting to database...');
-    await dbVirtualOffice.initialize();
-    console.log('Database connected');
+  console.log('Connecting to database...');
+  await dbVirtualOffice.initialize();
+  console.log('Database connected');
 
-    if (IS_DEV) {
-      console.log('Synchronizing database...');
-      await dbVirtualOffice.synchronize();
-      console.log('Database synchronized');
-    }
-
-    await seeds();
-  } catch (error) {
-    if (error instanceof Error) {
-      if ('code' in error && typeof error.code === 'string') {
-        if (
-          ['ER_BAD_DB_ERROR', 'ER_ACCESS_DENIED_ERROR'].includes(error.code)
-        ) {
-          const newError = new DatabaseError(
-            error.message,
-            'Wrong database credentials',
-            error.code,
-          );
-          console.error(newError);
-
-          process.exit(1);
-        }
-      }
-    }
-
-    console.log('initDB', error);
+  if (IS_DEV) {
+    console.log('Synchronizing database...');
+    await dbVirtualOffice.synchronize();
+    console.log('Database synchronized');
   }
+
+  await seeds();
 };
 export { dbVirtualOffice, initDB };

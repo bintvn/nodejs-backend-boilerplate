@@ -1,19 +1,21 @@
 import type { Request, Response } from 'express';
+import { parseBody, parsePatchId } from '../../common/validation.js';
 import type { UserRoleEntity } from '../../db/entities/user-role.entity.js';
 import {
   createUserRoleSchema,
   updateUserRoleSchema,
 } from './user-role.schema.js';
 import type UserRoleService from './user-role.service.js';
-import { ValidationError } from '../../common/errors.js';
+import { roleDto } from '../role/role.controller.js';
+import { userDto } from '../user/user.controller.js';
 
-const dto = (userRole: UserRoleEntity) => ({
+export const userRoleDto = (userRole: UserRoleEntity) => ({
   id: userRole.id,
   createdAt: userRole.createdAt,
   updatedAt: userRole.updatedAt,
   disabled: userRole.disabled,
-  user: userRole.user,
-  role: userRole.role,
+  user: userDto(userRole.user),
+  role: roleDto(userRole.role),
 });
 
 export default class UserRoleController {
@@ -22,40 +24,37 @@ export default class UserRoleController {
   constructor(private readonly service: UserRoleService) {}
 
   getAll = async (_request: Request, response: Response) => {
-    response.json({ data: (await this.service.getAll()).map(dto) });
+    response.json({ data: (await this.service.getAll()).map(userRoleDto) });
   };
 
   get = async (request: Request<{ id: string }>, response: Response) => {
-    response.json({ data: dto(await this.service.get(request.params.id)) });
+    response.json({
+      data: userRoleDto(await this.service.get(request.params.id)),
+    });
   };
 
   create = async (request: Request, response: Response) => {
-    const parsed = createUserRoleSchema.safeParse(request.body);
-
-    if (!parsed.success)
-      throw new ValidationError('Validation failed', parsed.error);
+    const data = parseBody(createUserRoleSchema, request.body);
 
     response.status(201).json({
-      data: dto(
+      data: userRoleDto(
         await this.service.create({
-          user: { id: parsed.data.userId },
-          role: { id: parsed.data.roleId },
+          user: { id: data.userId },
+          role: { id: data.roleId },
         }),
       ),
     });
   };
 
   update = async (request: Request<{ id: string }>, response: Response) => {
-    const parsed = updateUserRoleSchema.safeParse(request.body);
-
-    if (!parsed.success)
-      throw new ValidationError('Validation failed', parsed.error);
+    const id = parsePatchId(request.params.id);
+    const data = parseBody(updateUserRoleSchema, request.body);
 
     response.json({
-      data: dto(
-        await this.service.update(request.params.id, {
-          user: { id: parsed.data.userId },
-          role: { id: parsed.data.roleId },
+      data: userRoleDto(
+        await this.service.update(id, {
+          ...(data.userId && { user: { id: data.userId } }),
+          ...(data.roleId && { role: { id: data.roleId } }),
         }),
       ),
     });

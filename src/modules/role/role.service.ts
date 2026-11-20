@@ -30,13 +30,6 @@ export default class RoleService extends BaseService<
   }
 
   async update(id: string, input: UpdateRole) {
-    const data = updateRoleSchema.parse(input);
-
-    if (Object.keys(data).length) {
-      const result = await this.repository.update(id, data);
-      if (!result.affected) return await this.get(id);
-    }
-
-    return this.get(id);
+    return super.update(id, updateRoleSchema.parse(input));
   }
 }

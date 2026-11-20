@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { descriptionSchema } from '../../common/validation.js';
 
 const name = z
   .string()
@@ -13,7 +14,7 @@ const slug = z
 export const createRoleSchema = z.strictObject({
   name,
   slug,
-  description: z.string().optional(),
+  description: descriptionSchema,
 });
 export const updateRoleSchema = createRoleSchema.partial();
 export type CreateRole = z.infer<typeof createRoleSchema>;

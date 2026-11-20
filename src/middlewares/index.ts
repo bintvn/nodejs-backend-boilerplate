@@ -12,8 +12,9 @@ export function middleware(
     request.path.length > 1
   ) {
     const query = request.url.slice(request.path.length);
-    const safePath = request.path.slice(0, -1).replace(/\/+/g, '/');
-    response.redirect(301, safePath + query);
+    const safePath =
+      request.path.replace(/[\\/]+/g, '/').replace(/\/$/, '') || '/';
+    response.redirect(308, safePath + query);
   } else {
     next();
   }

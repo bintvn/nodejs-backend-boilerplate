@@ -44,9 +44,6 @@ export default class UserService extends BaseService<
     if (data.password !== undefined)
       partial.password = await passwordHash(data.password);
 
-    const result = await this.repository.update(id, partial);
-    if (!result.affected) return await this.get(id);
-
-    return this.get(id);
+    return super.update(id, partial);
   }
 }

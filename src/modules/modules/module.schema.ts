@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { descriptionSchema } from '../../common/validation.js';
 
 const name = z
   .string()
@@ -10,12 +11,10 @@ const slug = z
   .max(255)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*(?![\s\S])/);
 
-const description = z.string().optional();
-
 export const createModuleSchema = z.strictObject({
   name,
   slug,
-  description,
+  description: descriptionSchema,
 });
 export const updateModuleSchema = createModuleSchema.partial();
 export type CreateModule = z.infer<typeof createModuleSchema>;
