@@ -25,7 +25,7 @@ export class UserEntity extends BaseEntity {
     length: 255,
     select: false,
   })
-  password: string;
+  passwordHash: string;
 
   @OneToMany(() => UserRoleEntity, (role) => role.user)
   userRoles: Relation<UserRoleEntity>;

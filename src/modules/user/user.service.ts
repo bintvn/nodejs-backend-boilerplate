@@ -1,4 +1,3 @@
-import { hash } from '@node-rs/argon2';
 import type { Repository } from 'typeorm';
 import type { UserEntity } from '../../db/entities/user.entity.js';
 import {
@@ -8,13 +7,7 @@ import {
   type UpdateUser,
 } from './user.schema.js';
 import { BaseService } from '../../common/base.service.js';
-
-const passwordHash = (password: string) =>
-  hash(password, {
-    memoryCost: 19456,
-    timeCost: 2,
-    parallelism: 1,
-  });
+import passwordUtil from '../../utils/password.util.js';
 
 export default class UserService extends BaseService<
   UserEntity,
@@ -28,10 +21,14 @@ export default class UserService extends BaseService<
 
   async create(input: CreateUser) {
     const data = createUserSchema.parse(input);
-    const password = await passwordHash(data.password);
+    const passwordHash = await passwordUtil.hash(data.password);
 
     return await this.repository.save(
-      this.repository.create({ name: data.name, email: data.email, password }),
+      this.repository.create({
+        name: data.name,
+        email: data.email,
+        passwordHash,
+      }),
     );
   }
 
@@ -42,7 +39,7 @@ export default class UserService extends BaseService<
     if (data.name !== undefined) partial.name = data.name;
     if (data.email !== undefined) partial.email = data.email;
     if (data.password !== undefined)
-      partial.password = await passwordHash(data.password);
+      partial.passwordHash = await passwordUtil.hash(data.password);
 
     return super.update(id, partial);
   }

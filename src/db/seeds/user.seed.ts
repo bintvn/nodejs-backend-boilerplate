@@ -18,7 +18,7 @@ const userSeed = async () => {
       userRepository.create({
         name: ADMIN_NAME,
         email,
-        password: await password.hash(ADMIN_PASSWORD),
+        passwordHash: await password.hash(ADMIN_PASSWORD),
       }),
     ));
 
