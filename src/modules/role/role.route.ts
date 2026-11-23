@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { roleController } from '../bootstrap.js';
+import { roleController } from '../../bootstrap.js';
 
 const roleRoutes = Router();
 

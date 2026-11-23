@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { moduleController } from '../bootstrap.js';
+import { moduleController } from '../../bootstrap.js';
 
 const moduleRoutes = Router();
 

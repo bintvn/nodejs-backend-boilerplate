@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import indexRoutes from './index.route.js';
-import userRoutes from './user.route.js';
-import userRoleRoutes from './user-role.route.js';
+import userRoutes from '../modules/user/user.route.js';
+import userRoleRoutes from '../modules/user-role/user-role.route.js';
 import notFoundRoute from './not-found.route.js';
-import moduleRoutes from './module.route.js';
-import moduleUserRoleRoutes from './module-user-role.route.js';
-import roleRoutes from './role.route.js';
+import moduleRoutes from '../modules/modules/module.route.js';
+import moduleUserRoleRoutes from '../modules/module-user-role/module-user-role.route.js';
+import roleRoutes from '../modules/role/role.route.js';
 
 const router = Router();
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { moduleUserRoleController } from '../bootstrap.js';
+import { moduleUserRoleController } from '../../bootstrap.js';
 
 const moduleUserRoleRoutes = Router();
 
