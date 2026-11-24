@@ -1,5 +1,4 @@
 import type { Request, Response } from 'express';
-import { z } from 'zod';
 import type { AuthService } from './auth.service.js';
 import {
   requireAuth,
@@ -8,27 +7,12 @@ import {
 import type { SessionEntity } from '../session/session.entity.js';
 import { AuthError } from '../../errors.js';
 import type { ClientMetadata } from '../../../types/auth.types.js';
-
-const registerSchema = z.object({
-  name: z.string().min(2).max(255),
-  email: z.email().max(255),
-  password: z.string().min(8).max(128),
-});
-
-const signInSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1),
-});
-
-const refreshSchema = z.object({
-  refreshToken: z.string().min(1),
-});
-
-const changePasswordSchema = z.object({
-  oldPassword: z.string().min(1),
-  newPassword: z.string().min(8).max(128),
-  revokeOtherSessions: z.boolean().optional(),
-});
+import {
+  changePasswordSchema,
+  refreshSchema,
+  registerSchema,
+  signInSchema,
+} from './auth.schema.js';
 
 export class AuthController {
   private readonly authService: AuthService;
