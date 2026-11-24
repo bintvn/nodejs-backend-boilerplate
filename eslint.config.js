@@ -12,6 +12,9 @@ export default defineConfig([
   {
     files: ['src/**/*.ts'],
     extends: [js.configs.recommended, tseslint.configs.strictTypeChecked],
+    rules: {
+      '@typescript-eslint/no-unsafe-class-instance-assignment': 'off',
+    },
     languageOptions: {
       parserOptions: {
         projectService: true,

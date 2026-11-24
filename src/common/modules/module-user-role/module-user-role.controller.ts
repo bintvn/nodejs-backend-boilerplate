@@ -13,7 +13,9 @@ export default class ModuleRoleController {
   constructor(private readonly service: ModuleRoleService) {}
 
   getAll = async (_request: Request, response: Response) => {
-    response.json({ data: (await this.service.getAll()).map(dto) });
+    response.json({
+      data: (await this.service.getAll()).map(moduleUserRoleDto),
+    });
   };
 
   get = async (request: Request<{ id: string }>, response: Response) => {
@@ -40,16 +42,14 @@ export default class ModuleRoleController {
   update = async (request: Request<{ id: string }>, response: Response) => {
     const id = parsePatchId(request.params.id);
     const data = parseBody(updateModuleUserRoleSchema, request.body);
-    const moduleUserRole = await this.service.update(id, {
+    await this.service.update(id, {
       ...(data.moduleId && { module: { id: data.moduleId } }),
       ...(data.userRoleId && {
         userRole: { id: data.userRoleId },
       }),
     });
 
-    response.json({
-      data: moduleUserRoleDto(moduleUserRole),
-    });
+    response.status(204).send();
   };
 
   delete = async (request: Request<{ id: string }>, response: Response) => {

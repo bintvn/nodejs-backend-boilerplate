@@ -1,13 +1,11 @@
 import type { Request, Response } from 'express';
 import { parseBody, parsePatchId } from '../../validation.js';
-import type { UserRoleEntity } from './user-role.entity.js';
 import {
   createUserRoleSchema,
   updateUserRoleSchema,
 } from './user-role.schema.js';
 import type UserRoleService from './user-role.service.js';
-import { roleDto } from '../role/role.controller.js';
-import { userDto } from '../user/user.controller.js';
+import { userRoleDto } from './user-role.dto.js';
 
 export default class UserRoleController {
   readonly name = 'user-role';
@@ -44,14 +42,12 @@ export default class UserRoleController {
   update = async (request: Request<{ id: string }>, response: Response) => {
     const id = parsePatchId(request.params.id);
     const data = parseBody(updateUserRoleSchema, request.body);
-    const userRole = await this.service.update(id, {
+    await this.service.update(id, {
       ...(data.userId && { user: { id: data.userId } }),
       ...(data.roleId && { role: { id: data.roleId } }),
     });
 
-    response.json({
-      data: userRoleDto(userRole),
-    });
+    response.status(204).send();
   };
 
   delete = async (request: Request<{ id: string }>, response: Response) => {

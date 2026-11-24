@@ -34,11 +34,9 @@ export default class ModuleController {
   update = async (request: Request<{ id: string }>, response: Response) => {
     const id = parsePatchId(request.params.id);
     const data = parseBody(updateModuleSchema, request.body);
-    const module = await this.service.update(id, data);
+    await this.service.update(id, data);
 
-    response.json({
-      data: moduleDto(module),
-    });
+    response.status(204).send();
   };
 
   delete = async (request: Request<{ id: string }>, response: Response) => {
