@@ -6,12 +6,18 @@ import morgan from 'morgan';
 import router from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { middleware } from './middlewares/index.js';
+import { COOKIE_SECRET } from './constants.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors());
 app.use(compression());
+
+if (COOKIE_SECRET) app.use(cookieParser(COOKIE_SECRET));
+
 app.use(
   morgan(
     ':remote-addr - :remote-user [:date[iso]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',

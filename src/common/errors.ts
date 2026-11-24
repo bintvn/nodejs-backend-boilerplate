@@ -43,6 +43,18 @@ export class AppError extends Error {
   }
 }
 
+export class TokenExpiredError extends AppError {
+  constructor(
+    message = 'Token has expired',
+    code: AuthErrorCode = 'TOKEN_EXPIRED',
+    details: {
+      expiredAt: Date;
+    },
+  ) {
+    super(message, 401, { code, details });
+  }
+}
+
 export class DatabaseError extends AppError {
   constructor(
     message = 'Database error',

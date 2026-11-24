@@ -8,7 +8,12 @@ import type { JwtPayload, SignOptions } from 'jsonwebtoken';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UserEntity } from '../user/user.entity.js';
 import { SessionEntity } from '../session/session.entity.js';
-import { AuthError, BadRequestError, NotFoundError } from '../../errors.js';
+import {
+  AuthError,
+  BadRequestError,
+  NotFoundError,
+  TokenExpiredError,
+} from '../../errors.js';
 import type {
   AccessTokenPayload,
   AuthenticatedUser,
@@ -242,7 +247,9 @@ export class AuthService {
       }
 
       if (error instanceof jwt.TokenExpiredError) {
-        throw new AuthError('Access token is expired', 401, 'TOKEN_EXPIRED');
+        throw new TokenExpiredError('Access token expired', 'TOKEN_EXPIRED', {
+          expiredAt: error.expiredAt,
+        });
       }
 
       throw new AuthError('Invalid access token', 401, 'TOKEN_INVALID');
@@ -256,7 +263,7 @@ export class AuthService {
     const [user, session] = await Promise.all([
       this.userRepository.findOne({
         where: { id: userId },
-        relations: { userRoles: true },
+        relations: { userRoles: { role: true } },
       }),
       this.sessionRepository.findOne({
         where: { id: sessionId, user: { id: userId } },
@@ -307,6 +314,16 @@ export class AuthService {
       },
     });
 
+    if (
+      currentSessionId &&
+      !sessions.find((session) => session.id === currentSessionId)
+    )
+      throw new AuthError(
+        'Session has been ended or revoked',
+        401,
+        'SESSION_REVOKED',
+      );
+
     return sessions
       .filter((session) => session.expiresAt.getTime() > Date.now())
       .map((session) => this.toSessionInfo(session, currentSessionId));
@@ -316,9 +333,26 @@ export class AuthService {
     sessionId: SessionEntity['id'],
     userId?: UserEntity['id'],
   ): Promise<void> {
+    const session = await this.sessionRepository.findOne({
+      where: {
+        id: sessionId,
+        user: { id: userId },
+      },
+    });
+
+    if (!session)
+      throw new AuthError('Session not found', 401, 'SESSION_NOT_FOUND');
+
+    if (session.revokedAt)
+      throw new AuthError(
+        'Session has been ended or revoked',
+        401,
+        'SESSION_REVOKED',
+      );
+
     const whereClause =
       userId !== undefined
-        ? { id: sessionId, userId, revokedAt: IsNull() }
+        ? { id: sessionId, user: { id: userId }, revokedAt: IsNull() }
         : { id: sessionId, revokedAt: IsNull() };
 
     await this.sessionRepository.update(whereClause, {
@@ -493,7 +527,7 @@ export class AuthService {
 
       if (!this.isRefreshTokenPayload(decoded)) {
         throw new AuthError(
-          'Payload refresh token tidak valid',
+          'Refresh token payload is not valid',
           401,
           'TOKEN_INVALID',
         );
@@ -504,6 +538,7 @@ export class AuthService {
       if (error instanceof AuthError) {
         throw error;
       }
+
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthError(
           'Refresh token telah kedaluwarsa',
@@ -511,6 +546,7 @@ export class AuthService {
           'TOKEN_EXPIRED',
         );
       }
+
       throw new AuthError('Refresh token tidak valid', 401, 'TOKEN_INVALID');
     }
   }

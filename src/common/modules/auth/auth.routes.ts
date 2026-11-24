@@ -22,8 +22,8 @@ export function createAuthRouter(): Router {
 
   router.get('/session', authenticate, authController.session);
   router.get('/sessions', authenticate, authController.sessions);
-  router.post('/signout', authenticate, authController.signout);
-  router.post('/signout-all', authenticate, authController.signoutAll);
+  router.post('/sign-out', authenticate, authController.signout);
+  router.post('/sign-out-all', authenticate, authController.signoutAll);
   router.delete(
     '/sessions/:sessionId',
     authenticate,

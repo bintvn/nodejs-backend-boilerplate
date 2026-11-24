@@ -38,6 +38,11 @@ export const JWT_AUDIENCE = process.env.JWT_AUDIENCE || '';
 export const JWT_EMAIL_VERIFICATION_SECRET =
   process.env.JWT_EMAIL_VERIFICATION_SECRET;
 
+export const COOKIE_SECRET = process.env.COOKIE_SECRET;
+export const COOKIE_EXPIRES_IN_SECOND = process.env.COOKIE_EXPIRES_IN_SECOND
+  ? parseInt(process.env.COOKIE_EXPIRES_IN_SECOND)
+  : undefined;
+
 export const SMTP_HOST = process.env.SMTP_HOST || '';
 export const SMTP_PORT = process.env.SMTP_PORT
   ? parseInt(process.env.SMTP_PORT)

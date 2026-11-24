@@ -13,6 +13,11 @@ import {
   registerSchema,
   signInSchema,
 } from './auth.schema.js';
+import {
+  COOKIE_EXPIRES_IN_SECOND,
+  COOKIE_SECRET,
+  IS_DEV,
+} from '../../../constants.js';
 
 export class AuthController {
   private readonly authService: AuthService;
@@ -37,6 +42,8 @@ export class AuthController {
       metadata: this.extractMetadata(req),
     });
 
+    this.setCookie(res, result.refreshToken);
+
     res.status(200).json({
       success: true,
       data: result,
@@ -44,11 +51,23 @@ export class AuthController {
   };
 
   public refresh = async (req: Request, res: Response): Promise<void> => {
-    const parsed = refreshSchema.parse(req.body);
+    const parsed = !req.body ? undefined : refreshSchema.parse(req.body);
+    const cookieToken =
+      typeof (req.signedCookies as Record<string, unknown>).token === 'string'
+        ? (req.signedCookies as { token: string }).token
+        : null;
+
+    const refreshToken = parsed?.refreshToken || cookieToken;
+
+    if (!refreshToken)
+      throw new AuthError('Refresh token not found', 401, 'TOKEN_MISSING');
+
     const result = await this.authService.refresh(
-      parsed.refreshToken,
+      refreshToken,
       this.extractMetadata(req),
     );
+
+    this.setCookie(res, result.refreshToken);
 
     res.status(200).json({
       success: true,
@@ -89,9 +108,10 @@ export class AuthController {
     const auth = requireAuth(req);
     await this.authService.signout(auth.sid, auth.sub);
 
+    this.clearCookie(res);
+
     res.status(200).json({
       success: true,
-      message: 'Berhasil keluar dari sesi saat ini',
     });
   };
 
@@ -102,9 +122,10 @@ export class AuthController {
     const auth = requireAuth(req);
     await this.authService.signoutAll(auth.sub);
 
+    this.clearCookie(res);
+
     res.status(200).json({
       success: true,
-      message: 'Berhasil keluar dari semua sesi',
     });
   };
 
@@ -181,5 +202,26 @@ export class AuthController {
       ipAddress: rawIp ?? req.ip ?? null,
       userAgent: req.headers['user-agent'] ?? null,
     };
+  }
+
+  private setCookie(res: Response, token: string): void {
+    if (COOKIE_EXPIRES_IN_SECOND && COOKIE_SECRET)
+      res.cookie('token', token, {
+        signed: true,
+        httpOnly: true,
+        secure: !IS_DEV,
+        sameSite: 'strict',
+        maxAge: COOKIE_EXPIRES_IN_SECOND * 1000,
+      });
+  }
+
+  private clearCookie(res: Response): void {
+    if (COOKIE_EXPIRES_IN_SECOND && COOKIE_SECRET)
+      res.clearCookie('token', {
+        signed: true,
+        httpOnly: true,
+        secure: !IS_DEV,
+        sameSite: 'strict',
+      });
   }
 }
