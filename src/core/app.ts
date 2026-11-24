@@ -8,11 +8,20 @@ import { middleware } from './middlewares/index.js';
 import { COOKIE_SECRET } from './constants.js';
 import cookieParser from 'cookie-parser';
 import createRouter from './router.js';
-import createContainer from './bootstrap.js';
+import createCoreContainer, { type CoreContainer } from './bootstrap.js';
+import createAppContainer, { type AppContainer } from '../bootstrap.js';
+import { dbVirtualOffice } from './index.js';
+
+export type MainContainer = CoreContainer & AppContainer;
 
 const app = express();
-const container = createContainer();
-const router = createRouter(container);
+const coreContainer = createCoreContainer(dbVirtualOffice);
+const appContainer = createAppContainer(
+  dbVirtualOffice,
+  coreContainer.authModule.service,
+);
+const mainContainer: MainContainer = { ...coreContainer, ...appContainer };
+const router = createRouter(mainContainer);
 
 app.set('trust proxy', 1);
 app.use(helmet());

@@ -20,7 +20,6 @@ import type {
   AuthResult,
   ChangePasswordInput,
   ClientMetadata,
-  CurrentSessionResult,
   JwtConfig,
   RefreshTokenPayload,
   RegisterInput,
@@ -263,7 +262,7 @@ export class AuthService {
   public async getSession(
     userId: UserEntity['id'],
     sessionId: SessionEntity['id'],
-  ): Promise<CurrentSessionResult> {
+  ): Promise<SessionInfo> {
     const [user, session] = await Promise.all([
       this.userRepository.findOne({
         where: { id: userId },
@@ -290,15 +289,7 @@ export class AuthService {
       );
     }
 
-    return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        roles: this.extractRoles(user),
-      },
-      session: this.toSessionInfo(session, session.id),
-    };
+    return this.toSessionInfo(session, session.id);
   }
 
   public async getActiveSessions(

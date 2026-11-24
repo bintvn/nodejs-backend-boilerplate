@@ -1,4 +1,4 @@
-import { dbVirtualOffice } from './index.js';
+import type { DataSource } from 'typeorm';
 import createAccessControlModule from './modules/access-control/index.js';
 import createAuthModule from './modules/auth/index.js';
 import createEmailModule from './modules/email/index.js';
@@ -8,20 +8,19 @@ import createSessionModule from './modules/session/index.js';
 import createUserRoleModule from './modules/user-role/index.js';
 import createUserModule from './modules/user/index.js';
 
-export type Container = ReturnType<typeof createContainer>;
+export type CoreContainer = ReturnType<typeof createCoreContainer>;
 
-const createContainer = () => {
-  const accessControlModule = createAccessControlModule(dbVirtualOffice);
-
-  const emailModule = createEmailModule(dbVirtualOffice);
-  const moduleModule = createModuleModule(dbVirtualOffice);
-  const roleModule = createRoleModule(dbVirtualOffice);
-  const userRoleModule = createUserRoleModule(dbVirtualOffice);
-  const sessionModule = createSessionModule(dbVirtualOffice);
-  const userModule = createUserModule(dbVirtualOffice, {
+const createCoreContainer = (dataSource: DataSource) => {
+  const accessControlModule = createAccessControlModule(dataSource);
+  const emailModule = createEmailModule(dataSource);
+  const moduleModule = createModuleModule(dataSource);
+  const roleModule = createRoleModule(dataSource);
+  const userRoleModule = createUserRoleModule(dataSource);
+  const sessionModule = createSessionModule(dataSource);
+  const userModule = createUserModule(dataSource, {
     roleService: roleModule.service,
   });
-  const authModule = createAuthModule(dbVirtualOffice, {
+  const authModule = createAuthModule(dataSource, {
     emailService: emailModule.service,
     roleService: roleModule.service,
     sessionService: sessionModule.service,
@@ -40,4 +39,4 @@ const createContainer = () => {
   };
 };
 
-export default createContainer;
+export default createCoreContainer;
