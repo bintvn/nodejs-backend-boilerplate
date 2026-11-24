@@ -22,6 +22,13 @@ export class SessionEntity extends BaseEntity {
   expiresAt: Date;
 
   @Column({
+    name: 'revoked_at',
+    type: 'datetime',
+    nullable: true,
+  })
+  revokedAt: Date | null;
+
+  @Column({
     name: 'refresh_token_hash',
     type: 'varchar',
     length: 64,
@@ -50,13 +57,6 @@ export class SessionEntity extends BaseEntity {
     nullable: true,
   })
   lastUsedAt: Date | null;
-
-  @Column({
-    name: 'revoked_at',
-    type: 'datetime',
-    nullable: true,
-  })
-  revokedAt: Date | null;
 
   @ManyToOne(() => UserEntity, {
     onDelete: 'CASCADE',

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { RoleEntity } from '../role/role.entity.js';
 
 const name = z
   .string()
@@ -14,13 +13,14 @@ const password = z
   .refine((value) => value.trim().length > 0, {
     message: 'Password must contain a non-whitespace character',
   });
-const role = RoleEntity;
+const roleId = z.uuid();
 
 export const createUserSchema = z.strictObject({
+  isEmailVerified: z.boolean().optional(),
   name,
   email,
   password,
-  role,
+  roleId,
 });
 export const updateUserSchema = createUserSchema.partial();
 export type CreateUser = z.infer<typeof createUserSchema>;

@@ -25,6 +25,8 @@ import {
 } from './constants.js';
 import SessionService from './common/modules/session/session.service.js';
 import { SessionEntity } from './common/modules/session/session.entity.js';
+import EmailService from './common/modules/email/email.service.js';
+import { EmailEntity } from './common/modules/email/email.entity.js';
 
 const moduleService = new ModuleService(
   dbVirtualOffice.getRepository(ModuleEntity),
@@ -34,7 +36,9 @@ const moduleController = new ModuleController(moduleService);
 const roleService = new RoleService(dbVirtualOffice.getRepository(RoleEntity));
 const roleController = new RoleController(roleService);
 
-const userService = new UserService(dbVirtualOffice.getRepository(UserEntity));
+const userService = new UserService(dbVirtualOffice.getRepository(UserEntity), {
+  roleService,
+});
 const userController = new UserController(userService);
 
 const userRoleService = new UserRoleService(
@@ -53,6 +57,10 @@ const sessionService = new SessionService(
   dbVirtualOffice.getRepository(SessionEntity),
 );
 
+const emailService = new EmailService(
+  dbVirtualOffice.getRepository(EmailEntity),
+);
+
 const authService = new AuthService({
   config: {
     accessSecret: JWT_ACCESS_SECRET,
@@ -63,6 +71,7 @@ const authService = new AuthService({
     audience: JWT_AUDIENCE,
   },
   services: {
+    email: emailService,
     user: userService,
     role: roleService,
     session: sessionService,

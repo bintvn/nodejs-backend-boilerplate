@@ -15,9 +15,10 @@ export function createAuthRouter(): Router {
   const authController = new AuthController(authService);
   const authenticate = createAuthMiddleware(authService);
 
-  router.post('/register', authController.register);
-  router.post('/signin', authController.signin);
+  router.post('/sign-up', authController.signUp);
+  router.post('/sign-in', authController.signin);
   router.post('/refresh', authController.refresh);
+  router.get('/verify/email/:token', authController.verifyEmailToken);
 
   router.get('/session', authenticate, authController.session);
   router.get('/sessions', authenticate, authController.sessions);

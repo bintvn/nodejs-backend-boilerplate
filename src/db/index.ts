@@ -14,8 +14,10 @@ import { RoleEntity } from '../common/modules/role/role.entity.js';
 import { SessionEntity } from '../common/modules/session/session.entity.js';
 import { UserRoleEntity } from '../common/modules/user-role/user-role.entity.js';
 import { UserEntity } from '../common/modules/user/user.entity.js';
+import { EmailEntity } from '../common/modules/email/email.entity.js';
 
 export const entities = [
+  EmailEntity,
   ModuleEntity,
   ModuleUserRoleEntity,
   RoleEntity,

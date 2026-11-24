@@ -9,6 +9,7 @@ if (IS_DEV) {
 
 export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 export const HOST = process.env.HOST || 'localhost';
+export const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 export const IS_PROD = NODE_ENV === 'production';
 export const DB_HOST = process.env.DB_HOST || 'localhost';
@@ -34,3 +35,14 @@ export const JWT_REFRESH_EXPIRES_IN_SECOND = process.env
   : 86400 * 7;
 export const JWT_ISSUER = process.env.JWT_ISSUER || '';
 export const JWT_AUDIENCE = process.env.JWT_AUDIENCE || '';
+export const JWT_EMAIL_VERIFICATION_SECRET =
+  process.env.JWT_EMAIL_VERIFICATION_SECRET;
+
+export const SMTP_HOST = process.env.SMTP_HOST || '';
+export const SMTP_PORT = process.env.SMTP_PORT
+  ? parseInt(process.env.SMTP_PORT)
+  : 587;
+export const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
+export const SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL || '';
+export const SMTP_LOGIN_EMAIL = process.env.SMTP_USER;
+export const SMTP_LOGIN_PASSWORD = process.env.SMTP_PASSWORD;

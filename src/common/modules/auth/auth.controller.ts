@@ -21,16 +21,12 @@ export class AuthController {
     this.authService = authService;
   }
 
-  public register = async (req: Request, res: Response): Promise<void> => {
+  public signUp = async (req: Request, res: Response): Promise<void> => {
     const parsed = registerSchema.parse(req.body);
-    const result = await this.authService.register(
-      parsed,
-      this.extractMetadata(req),
-    );
+    await this.authService.register(parsed);
 
     res.status(201).json({
       success: true,
-      data: result,
     });
   };
 
@@ -158,6 +154,20 @@ export class AuthController {
     res.status(200).json({
       success: true,
       message: 'Password berhasil diperbarui',
+    });
+  };
+
+  public verifyEmailToken = async (
+    request: Request<{ token: string }>,
+    response: Response,
+  ): Promise<void> => {
+    const token = request.params.token;
+    const result = await this.authService.verifyEmailToken(token);
+
+    if (!result) throw new AuthError('Token tidak valid', 400, 'TOKEN_INVALID');
+
+    response.status(200).json({
+      success: true,
     });
   };
 

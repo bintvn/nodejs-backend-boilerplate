@@ -62,15 +62,11 @@ export interface TokenPair {
   accessToken: string;
   refreshToken: string;
   tokenType: 'Bearer';
-  expiresIn: number;
-  refreshExpiresIn: number;
+  accessTokenExpiresIn: number;
+  refreshTokenExpiresIn: number;
 }
 
-export interface AuthResult {
-  user: AuthenticatedUser;
-  sessionId: SessionEntity['id'];
-  tokens: TokenPair;
-}
+export type AuthResult = TokenPair & {};
 
 export interface SessionInfo {
   id: SessionEntity['id'];

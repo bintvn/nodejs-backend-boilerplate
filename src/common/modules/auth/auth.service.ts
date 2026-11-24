@@ -8,7 +8,7 @@ import type { JwtPayload, SignOptions } from 'jsonwebtoken';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UserEntity } from '../user/user.entity.js';
 import { SessionEntity } from '../session/session.entity.js';
-import { AuthError } from '../../errors.js';
+import { AuthError, BadRequestError, NotFoundError } from '../../errors.js';
 import type {
   AccessTokenPayload,
   AuthenticatedUser,
@@ -27,10 +27,12 @@ import type UserService from '../user/user.service.js';
 import type RoleService from '../role/role.service.js';
 import type { RoleEntity } from '../role/role.entity.js';
 import type SessionService from '../session/session.service.js';
+import type EmailService from '../email/email.service.js';
 
 export type AuthServiceOptions = {
   config: JwtConfig;
   services: {
+    email: EmailService;
     user: UserService;
     role: RoleService;
     session: SessionService;
@@ -38,6 +40,7 @@ export type AuthServiceOptions = {
 };
 
 export class AuthService {
+  private readonly emailService: EmailService;
   private readonly userRepository: Repository<UserEntity>;
   private readonly sessionRepository: Repository<SessionEntity>;
   private readonly userService: UserService;
@@ -45,6 +48,7 @@ export class AuthService {
   private readonly config: JwtConfig;
 
   constructor(options: AuthServiceOptions) {
+    this.emailService = options.services.email;
     this.userRepository = options.services.user.repository;
     this.sessionRepository = options.services.session.repository;
     this.userService = options.services.user;
@@ -52,39 +56,52 @@ export class AuthService {
     this.config = options.config;
   }
 
-  public async register(
-    input: RegisterInput,
-    metadata?: ClientMetadata,
-  ): Promise<AuthResult> {
+  public async register(input: RegisterInput) {
     const normalizedEmail = this.normalizeEmail(input.email);
-    const existingUser = await this.userService.repository.findOne({
-      select: {
-        id: true,
+
+    return await this.userService.repository.manager.transaction(
+      async (manager) => {
+        const userRepository = manager.getRepository(
+          this.userService.repository.target,
+        );
+        const existingUser = await userRepository.findOne({
+          select: {
+            id: true,
+          },
+          where: {
+            email: normalizedEmail,
+          },
+        });
+
+        if (existingUser)
+          throw new AuthError('Email Exists', 409, 'EMAIL_ALREADY_EXISTS');
+
+        const role = await this.roleService.getBy({ slug: 'user' }, manager);
+
+        if (!role) throw new NotFoundError('User Role not found');
+
+        const savedUser = await this.userService.create(
+          {
+            name: input.name.trim(),
+            email: normalizedEmail,
+            password: input.password,
+            roleId: role.id,
+          },
+          manager,
+        );
+
+        await this.emailService.sendVerificationEmail(
+          {
+            userId: savedUser.id,
+            userEmail: savedUser.email,
+            userName: savedUser.name,
+          },
+          manager,
+        );
+
+        return true;
       },
-      where: {
-        email: normalizedEmail,
-      },
-    });
-
-    if (existingUser)
-      throw new AuthError('Email Exists', 409, 'EMAIL_ALREADY_EXISTS');
-
-    const role = await this.roleService.getBy({ slug: 'user' });
-    const savedUser = await this.userService.create({
-      name: input.name.trim(),
-      email: normalizedEmail,
-      password: input.password,
-      role,
-    });
-
-    const authUser: AuthenticatedUser = {
-      id: savedUser.id,
-      name: savedUser.name,
-      email: savedUser.email,
-      roles: [],
-    };
-
-    return this.createSessionAndTokens(authUser, metadata);
+    );
   }
 
   public async signin(input: SignInInput): Promise<AuthResult> {
@@ -120,6 +137,9 @@ export class AuthService {
         'INVALID_CREDENTIALS',
       );
     }
+
+    if (!user.isEmailVerified)
+      throw new BadRequestError('Email is not verified', 400);
 
     const authUser: AuthenticatedUser = {
       id: user.id,
@@ -202,11 +222,7 @@ export class AuthService {
 
     await this.sessionRepository.save(session);
 
-    return {
-      user: authUser,
-      sessionId: session.id,
-      tokens,
-    };
+    return tokens;
   }
 
   public verifyAccessToken(accessToken: string): AccessTokenPayload {
@@ -342,8 +358,12 @@ export class AuthService {
   ): Promise<void> {
     const whereClause =
       exceptSessionId !== undefined
-        ? { userId, id: Not(exceptSessionId), revokedAt: IsNull() }
-        : { userId, revokedAt: IsNull() };
+        ? {
+            user: { id: userId },
+            id: Not(exceptSessionId),
+            revokedAt: IsNull(),
+          }
+        : { user: { id: userId }, revokedAt: IsNull() };
 
     await this.sessionRepository.update(whereClause, {
       revokedAt: new Date(),
@@ -370,6 +390,12 @@ export class AuthService {
 
     if (input.revokeOtherSessions !== false)
       await this.signoutAll(input.userId, input.currentSessionId);
+  }
+
+  public async verifyEmailToken(token: string) {
+    await this.emailService.verifyEmailVerificationToken(token);
+
+    return true;
   }
 
   private async createSessionAndTokens(
@@ -401,11 +427,7 @@ export class AuthService {
     savedSession.refreshTokenHash = this.hashToken(tokens.refreshToken);
     await this.sessionRepository.save(savedSession);
 
-    return {
-      user,
-      sessionId: savedSession.id,
-      tokens,
-    };
+    return tokens;
   }
 
   private generateTokenPair(
@@ -457,8 +479,8 @@ export class AuthService {
       accessToken,
       refreshToken,
       tokenType: 'Bearer',
-      expiresIn: this.config.accessExpiresInSeconds,
-      refreshExpiresIn: this.config.refreshExpiresInSeconds,
+      accessTokenExpiresIn: this.config.accessExpiresInSeconds,
+      refreshTokenExpiresIn: this.config.refreshExpiresInSeconds,
     };
   }
 

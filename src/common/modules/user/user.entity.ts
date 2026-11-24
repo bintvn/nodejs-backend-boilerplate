@@ -31,7 +31,6 @@ export class UserEntity extends BaseEntity {
     name: 'password_hash',
     type: 'varchar',
     length: 255,
-    select: false,
   })
   passwordHash: string;
 

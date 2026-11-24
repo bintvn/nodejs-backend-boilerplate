@@ -6,7 +6,7 @@ import { RoleEntity } from '../role/role.entity.js';
 @Entity('user_role')
 export class UserRoleEntity extends BaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.userRoles, {
-    onDelete: 'RESTRICT',
+    onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
     nullable: false,
   })
