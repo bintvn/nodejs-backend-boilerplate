@@ -12,7 +12,7 @@ export enum EmailStatus {
   FAILED = 'failed',
 }
 
-@Entity('email')
+@Entity('core__email')
 export class EmailEntity extends BaseEntity {
   @Column({
     name: 'cancelled_at',

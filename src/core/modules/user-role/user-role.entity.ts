@@ -3,7 +3,7 @@ import { UserEntity } from '../user/user.entity.js';
 import { RoleEntity } from '../role/role.entity.js';
 import { BaseEntity } from '../../base.entity.js';
 
-@Entity('user_role')
+@Entity('core__user_role')
 export class UserRoleEntity extends BaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.userRoles, {
     onDelete: 'CASCADE',

@@ -4,8 +4,8 @@ import { UserRoleEntity } from '../user-role/user-role.entity.js';
 import { SessionEntity } from '../session/session.entity.js';
 import { PostEntity } from '../../../modules/post/post.entity.js';
 
-@Entity('user')
-@Index('uq_user_email', ['email'], { unique: true })
+@Entity('core__user')
+@Index('UQ_core__user_email', ['email'], { unique: true })
 export class UserEntity extends BaseEntity {
   @Column({
     name: 'is_email_verified',

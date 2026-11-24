@@ -9,8 +9,8 @@ import {
 import { BaseEntity } from '../../base.entity.js';
 import { UserEntity } from '../user/user.entity.js';
 
-@Entity('session')
-@Index('uq_session_refresh_token_hash', ['refreshTokenHash'], {
+@Entity('core__session')
+@Index('UQ_core__session_refresh_token_hash', ['refreshTokenHash'], {
   unique: true,
 })
 export class SessionEntity extends BaseEntity {

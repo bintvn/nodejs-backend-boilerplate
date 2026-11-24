@@ -10,7 +10,7 @@ import { RoleEntity } from '../role/role.entity.js';
 import { ModuleEntity } from '../modules/module.entity.js';
 import { BaseEntity } from '../../base.entity.js';
 
-@Entity('access_control')
+@Entity('core__access_control')
 @Unique('UQ_role_module', ['role', 'module'])
 export class AccessControlEntity extends BaseEntity {
   @Column({

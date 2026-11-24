@@ -2,8 +2,8 @@ import { Column, Entity, Index, OneToMany, type Relation } from 'typeorm';
 import { BaseEntity } from '../../base.entity.js';
 import { AccessControlEntity } from '../access-control/access-control.entity.js';
 
-@Entity('module')
-@Index('uq_module_code', ['code'], { unique: true })
+@Entity('core__module')
+@Index('UQ_core__module_code', ['code'], { unique: true })
 export class ModuleEntity extends BaseEntity {
   @Column({
     name: 'name',
