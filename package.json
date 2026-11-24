@@ -5,6 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "generate:module": "tsx src/core/generator/generate-module.ts",
     "build": "node scripts/clean-dist.mjs && npm run typecheck && npm run lint && npm run format && tsc",
     "start": "node dist/server.js",
     "lint": "eslint . --max-warnings 0",
