@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-import entities from './entities/index.js';
 import {
   DB_HOST,
   DB_NAME,
@@ -9,6 +8,21 @@ import {
   IS_DEV,
 } from '../constants.js';
 import seeds from './seeds/index.js';
+import { ModuleUserRoleEntity } from '../common/modules/module-user-role/module-user-role.entity.js';
+import { ModuleEntity } from '../common/modules/modules/module.entity.js';
+import { RoleEntity } from '../common/modules/role/role.entity.js';
+import { SessionEntity } from '../common/modules/session/session.entity.js';
+import { UserRoleEntity } from '../common/modules/user-role/user-role.entity.js';
+import { UserEntity } from '../common/modules/user/user.entity.js';
+
+export const entities = [
+  ModuleEntity,
+  ModuleUserRoleEntity,
+  RoleEntity,
+  SessionEntity,
+  UserEntity,
+  UserRoleEntity,
+];
 
 const dbVirtualOffice = new DataSource({
   type: 'mysql',

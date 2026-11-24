@@ -1,16 +1,19 @@
-import type {
-  DeepPartial,
-  FindManyOptions,
-  FindOptionsRelations,
-  FindOptionsWhere,
-  ObjectLiteral,
-  QueryDeepPartialEntity,
-  Repository,
+import {
+  EntityManager,
+  IsNull,
+  Not,
+  type DeepPartial,
+  type FindManyOptions,
+  type FindOptionsWhere,
+  type ObjectLiteral,
+  type QueryDeepPartialEntity,
+  type Repository,
 } from 'typeorm';
 import { NotFoundError } from './errors.js';
 
 export interface IBaseEntity extends ObjectLiteral {
   id: string;
+  deletedAt: Date | null;
 }
 
 export abstract class BaseService<
@@ -18,49 +21,114 @@ export abstract class BaseService<
   TRepository extends Repository<TEntity> = Repository<TEntity>,
 > {
   abstract readonly name: string;
+  repository: TRepository;
 
-  constructor(
-    protected readonly repository: TRepository,
-    private readonly relations?: FindOptionsRelations<TEntity>,
-  ) {}
-
-  getAll(options?: FindManyOptions<TEntity>) {
-    return this.repository.find({ relations: this.relations, ...options });
+  constructor(protected readonly sourceRepository: TRepository) {
+    this.repository = sourceRepository;
   }
 
-  async get(id: TEntity['id']): Promise<TEntity> {
-    const data = await this.repository.findOne({
+  async getAll(options?: FindManyOptions<TEntity>, manager?: EntityManager) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
+    return repository.find(options);
+  }
+
+  async get(id: TEntity['id'], manager?: EntityManager) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
+    return await repository.findOne({
       where: { id } as FindOptionsWhere<TEntity>,
-      relations: this.relations,
     });
-
-    if (!data) {
-      throw new NotFoundError(`${this.name} with ID ${id} not found`);
-    }
-
-    return data;
   }
 
-  async create(data: DeepPartial<TEntity>) {
-    const entity = this.repository.create(data);
+  async getBy(where: FindOptionsWhere<TEntity>, manager?: EntityManager) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
 
-    const saved = await this.repository.save(entity);
-    return this.relations ? this.get(saved.id) : saved;
+    return await repository.findOne({
+      where,
+    });
   }
 
-  async update(id: TEntity['id'], newData: QueryDeepPartialEntity<TEntity>) {
+  async create(data: DeepPartial<TEntity>, manager?: EntityManager) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
+    const entity = repository.create(data);
+
+    return await repository.save(entity);
+  }
+
+  async update(
+    id: TEntity['id'],
+    newData: QueryDeepPartialEntity<TEntity>,
+    manager?: EntityManager,
+  ) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
     if (Object.keys(newData).length > 0) {
-      await this.repository.update(id, newData);
+      await repository.update(id, newData);
+
+      return true;
     }
-    return this.get(id);
+
+    return false;
   }
 
-  async delete(id: TEntity['id']) {
-    const result = await this.repository.delete(id);
-    if (result.affected === 0) {
+  async delete(id: TEntity['id'], manager?: EntityManager) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
+    const result = await repository.delete(id);
+
+    if (result.affected === 0)
+      throw new NotFoundError(`${this.name} with ID ${id} not found`);
+
+    return true;
+  }
+
+  async softDelete(
+    id: TEntity['id'],
+    manager?: EntityManager,
+  ): Promise<boolean> {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
+    const result = await repository.softDelete({
+      id,
+      deletedAt: IsNull(),
+    } as FindOptionsWhere<TEntity>);
+
+    if (!result.affected) {
       throw new NotFoundError(`${this.name} with ID ${id} not found`);
     }
 
     return true;
+  }
+
+  async restore(id: TEntity['id'], manager?: EntityManager) {
+    const repository = manager
+      ? manager.getRepository(this.repository.target)
+      : this.repository;
+
+    return await repository.update(
+      {
+        id,
+        deletedAt: Not(IsNull()),
+      } as FindOptionsWhere<TEntity>,
+      {
+        deletedAt: null,
+      } as unknown as QueryDeepPartialEntity<TEntity>,
+    );
   }
 }

@@ -18,9 +18,19 @@ export const DB_PORT = process.env.DB_PORT
 export const DB_NAME = process.env.DB_NAME || 'virtual_office';
 export const DB_USERNAME = process.env.DB_USERNAME || 'root';
 export const DB_PASSWORD = process.env.DB_PASSWORD || '';
-export const SERVER_SECRET = process.env.SERVER_SECRET;
 export const REDIRECT_TRAILING_SLASH =
   process.env.REDIRECT_TRAILING_SLASH === 'true';
-export const ADMIN_NAME = process.env.ADMIN_NAME || 'Admin';
-export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@localhost';
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+
+export const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'secret';
+export const JWT_ACCESS_EXPIRES_IN_SECOND = process.env
+  .JWT_ACCESS_EXPIRES_IN_SECOND
+  ? parseInt(process.env.JWT_ACCESS_EXPIRES_IN_SECOND)
+  : 300;
+export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'secret';
+export const JWT_REFRESH_EXPIRES_IN_SECOND = process.env
+  .JWT_REFRESH_EXPIRES_IN_SECOND
+  ? parseInt(process.env.JWT_REFRESH_EXPIRES_IN_SECOND)
+  : 86400 * 7;
+export const JWT_ISSUER = process.env.JWT_ISSUER || '';
+export const JWT_AUDIENCE = process.env.JWT_AUDIENCE || '';

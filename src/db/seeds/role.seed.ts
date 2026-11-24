@@ -1,6 +1,6 @@
 import { In, type DeepPartial } from 'typeorm';
 import { dbVirtualOffice } from '../index.js';
-import { RoleEntity } from '../entities/role.entity.js';
+import { RoleEntity } from '../../common/modules/role/role.entity.js';
 
 const newRoles: DeepPartial<RoleEntity>[] = [
   {

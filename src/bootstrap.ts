@@ -1,19 +1,30 @@
 import { dbVirtualOffice } from './db/index.js';
-import { UserEntity } from './db/entities/user.entity.js';
-import UserService from './modules/user/user.service.js';
-import UserController from './modules/user/user.controller.js';
-import { UserRoleEntity } from './db/entities/user-role.entity.js';
-import UserRoleService from './modules/user-role/user-role.service.js';
-import UserRoleController from './modules/user-role/user-role.controller.js';
-import { ModuleEntity } from './db/entities/module.entity.js';
-import ModuleService from './modules/modules/module.service.js';
-import ModuleController from './modules/modules/module.controller.js';
-import ModuleUserRoleService from './modules/module-user-role/module-user-role.service.js';
-import { ModuleUserRoleEntity } from './db/entities/module-user-role.entity.js';
-import ModuleUserRoleController from './modules/module-user-role/module-user-role.controller.js';
-import RoleService from './modules/role/role.service.js';
-import { RoleEntity } from './db/entities/role.entity.js';
-import RoleController from './modules/role/role.controller.js';
+import { UserEntity } from './common/modules/user/user.entity.js';
+import UserService from './common/modules/user/user.service.js';
+import UserController from './common/modules/user/user.controller.js';
+import { UserRoleEntity } from './common/modules/user-role/user-role.entity.js';
+import UserRoleService from './common/modules/user-role/user-role.service.js';
+import UserRoleController from './common/modules/user-role/user-role.controller.js';
+import { ModuleEntity } from './common/modules/modules/module.entity.js';
+import ModuleService from './common/modules/modules/module.service.js';
+import ModuleController from './common/modules/modules/module.controller.js';
+import ModuleUserRoleService from './common/modules/module-user-role/module-user-role.service.js';
+import { ModuleUserRoleEntity } from './common/modules/module-user-role/module-user-role.entity.js';
+import ModuleUserRoleController from './common/modules/module-user-role/module-user-role.controller.js';
+import RoleService from './common/modules/role/role.service.js';
+import { RoleEntity } from './common/modules/role/role.entity.js';
+import RoleController from './common/modules/role/role.controller.js';
+import { AuthService } from './common/modules/auth/auth.service.js';
+import {
+  JWT_ACCESS_EXPIRES_IN_SECOND,
+  JWT_ACCESS_SECRET,
+  JWT_AUDIENCE,
+  JWT_ISSUER,
+  JWT_REFRESH_EXPIRES_IN_SECOND,
+  JWT_REFRESH_SECRET,
+} from './constants.js';
+import SessionService from './common/modules/session/session.service.js';
+import { SessionEntity } from './common/modules/session/session.entity.js';
 
 const moduleService = new ModuleService(
   dbVirtualOffice.getRepository(ModuleEntity),
@@ -38,10 +49,32 @@ const moduleUserRoleController = new ModuleUserRoleController(
   moduleUserRoleService,
 );
 
+const sessionService = new SessionService(
+  dbVirtualOffice.getRepository(SessionEntity),
+);
+
+const authService = new AuthService({
+  config: {
+    accessSecret: JWT_ACCESS_SECRET,
+    refreshSecret: JWT_REFRESH_SECRET,
+    accessExpiresInSeconds: JWT_ACCESS_EXPIRES_IN_SECOND,
+    refreshExpiresInSeconds: JWT_REFRESH_EXPIRES_IN_SECOND,
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  },
+  services: {
+    user: userService,
+    role: roleService,
+    session: sessionService,
+  },
+});
+
 export {
+  authService,
   moduleController,
   moduleUserRoleController,
   roleController,
+  sessionService,
   userController,
   userRoleController,
 };

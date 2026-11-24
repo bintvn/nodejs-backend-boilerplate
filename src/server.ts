@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import type { Server } from 'node:http';
 import { dbVirtualOffice, initDB } from './db/index.js';
 import app from './app.js';
+import { InternalServerError } from './common/errors.js';
 
 let server: Server | undefined;
 let isShuttingDown = false;
@@ -20,17 +21,20 @@ async function start() {
     });
   });
 
-  if (server) {
-    const result = server.address();
-    const address = typeof result === 'object' ? result : null;
-
-    console.log(
-      `Server running on http://${address?.address || HOST}:${String(address?.port || PORT)} (${String(address?.family)})`,
+  if (!server)
+    throw new InternalServerError(
+      'Failed to start server. Server instance is undefined.',
     );
-    server.on('close', () => {
-      console.log('HTTP server closed');
-    });
-  }
+
+  const result = server.address();
+  const address = typeof result === 'object' ? result : null;
+
+  console.log(
+    `Server running on http://${address?.address || HOST}:${String(address?.port || PORT)} (${String(address?.family)})`,
+  );
+  server.on('close', () => {
+    console.log('HTTP server closed');
+  });
 }
 
 async function handleStartupFailure(error: unknown) {

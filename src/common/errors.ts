@@ -186,3 +186,26 @@ export class GatewayTimeoutError extends AppError {
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
 }
+
+export type AuthErrorCode =
+  | 'INVALID_CREDENTIALS'
+  | 'EMAIL_ALREADY_EXISTS'
+  | 'TOKEN_MISSING'
+  | 'TOKEN_INVALID'
+  | 'TOKEN_EXPIRED'
+  | 'TOKEN_REUSE_DETECTED'
+  | 'SESSION_NOT_FOUND'
+  | 'SESSION_REVOKED'
+  | 'USER_NOT_FOUND';
+
+export class AuthError extends Error {
+  public readonly statusCode: number;
+  public readonly code: AuthErrorCode;
+
+  constructor(message: string, statusCode: number, code: AuthErrorCode) {
+    super(message);
+    this.name = 'AuthError';
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
