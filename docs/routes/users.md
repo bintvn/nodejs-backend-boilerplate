@@ -2,13 +2,13 @@
 
 The example base URL is `http://localhost:3000`. These endpoints are public.
 
-| Method   | Path          | Description   | Success          |
-| -------- | ------------- | ------------- | ---------------- |
-| `GET`    | `/users`      | List users    | `200 OK`         |
-| `POST`   | `/users`      | Create a user | `201 Created`    |
-| `GET`    | `/users/{id}` | Get a user    | `200 OK`         |
-| `PATCH`  | `/users/{id}` | Update a user | `200 OK`         |
-| `DELETE` | `/users/{id}` | Delete a user | `204 No Content` |
+| Method   | Path          | Description                               | Success          |
+| -------- | ------------- | ----------------------------------------- | ---------------- |
+| `GET`    | `/users`      | List users                                | `200 OK`         |
+| `POST`   | `/users`      | Create a user and return created user DTO | `201 Created`    |
+| `GET`    | `/users/{id}` | Get a user                                | `200 OK`         |
+| `PATCH`  | `/users/{id}` | Update a user                             | `204 No Content` |
+| `DELETE` | `/users/{id}` | Delete a user                             | `204 No Content` |
 
 Replace `{id}` with the user UUID returned in `data.id`.
 
@@ -83,7 +83,7 @@ Content-Type: application/json
 }
 ```
 
-Returns `200 OK` with the updated user under `data`, using the same object shape as the create response.
+Returns `204 No Content` with an empty body.
 
 ## Delete a user
 
